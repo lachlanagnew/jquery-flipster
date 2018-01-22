@@ -391,7 +391,7 @@
                     {
                         newClass += classes.itemFuture + ' ' +
                             classes.itemFuture + '-' + (i - _currentIndex);
-                        
+
                         zIndex = total -  (i - _currentIndex);
                     }
 
@@ -534,45 +534,30 @@
             function wheelEvents(elem) {
                 if ( settings.scrollwheel ) {
                     var _wheelInside = false,
+                        _stillScrolling = false,
+                        _scrollReset = true,
                         _actionThrottle = 0,
                         _throttleTimeout = 0,
+                        resetTimer = 0,
                         _delta = 0,
                         _dir, _lastDir,
-                        _isMozilla = /mozilla/.test(navigator.userAgent.toLowerCase()) && !/webkit/.test(navigator.userAgent.toLowerCase());
+                        _isMozilla = /mozilla/.test(navigator.userAgent.toLowerCase()) && !/webkit/.test(navigator.userAgent.toLowerCase()),
+                        _canScroll = true
+
 
                     elem
                         .on('mousewheel.flipster wheel.flipster', function() { _wheelInside = true; })
                         .on('mousewheel.flipster wheel.flipster', throttle(function(e) {
-
-                            // Reset after a period without scrolling.
-                            clearTimeout(_throttleTimeout);
-                            _throttleTimeout = setTimeout(function() {
-                                _actionThrottle = 0;
-                                _delta = 0;
-                            }, 300);
-
                             e = e.originalEvent;
-
-                            // Add to delta (+=) so that continuous small events can still get past the speed limit, and quick direction reversals get cancelled out
-                            _delta += (e.wheelDelta || (e.deltaY + e.deltaX) * -1); // Invert numbers for Firefox
-
-                            // Don't trigger unless the scroll is decent speed.
-                            // There's need to check if _isMozilla because of different working delta in Firefox (in FF scroll delta is less than 25 or more than -25)
-                            if ( Math.abs(_delta) < 25 && ! _isMozilla) { return; }
-
-                            _actionThrottle++;
-
+                            _delta = (e.wheelDelta || (e.deltaY + e.deltaX) * -1); // Invert numbers for Firefox
                             _dir = (_delta > 0 ? 'prev' : 'next');
-
-                            // Reset throttle if direction changed.
-                            if ( _lastDir !== _dir ) { _actionThrottle = 0; }
-                            _lastDir = _dir;
-
-                            // Regular scroll wheels trigger less events, so they don't need to be throttled. Trackpads trigger many events (inertia), so only trigger jump every three times to slow things down.
-                            if ( _actionThrottle < 6 || _actionThrottle % 3 === 0 ) { jump(_dir); }
-
-                            _delta = 0;
-
+                            if ( (Math.abs((e.wheelDelta || (e.deltaY + e.deltaX)) * -1) > 50) && (_canScroll)){
+                                _canScroll = false
+                                jump(_dir);
+                                setTimeout(function() {
+                                    _canScroll = true
+                                }, 300);
+                            }
                         }, 50));
 
                     // Disable mousewheel on window if event began in elem.
