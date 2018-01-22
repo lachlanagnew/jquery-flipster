@@ -556,7 +556,7 @@
                                 jump(_dir);
                                 setTimeout(function() {
                                     _canScroll = true
-                                }, 300);
+                                }, 500);
                             }
                         }, 50));
 
